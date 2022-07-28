@@ -297,10 +297,8 @@ public class Configuracion extends javax.swing.JFrame {
         Producto product = new Producto();
         product.setId(jId.getText());
         product.setNombre(jNombre.getText());
-        product.setTemperatura(product.ParseDouble(jTemperatura.getText()));
-        System.out.println(product.getTemperatura());
-        product.setValorBase(product.ParseDouble(jValorBase.getText()));
-        System.out.println(product.getValorBase());
+        product.setTemperatura(product.ParseDoubleEspecial(jTemperatura.getText()));
+        product.setValorBase(product.ParseDoubleEspecial(jValorBase.getText()));
         
         ConexionDB con = new ConexionDB();
         
@@ -309,7 +307,7 @@ public class Configuracion extends javax.swing.JFrame {
                 + "' OR Temperatura='" + product.getTemperatura()
                 + "' OR ValorBase='" + product.getValorBase() + "';";
         
-        if(jId.getText().length()<=0 && jNombre.getText().length()<=0 && product.getTemperatura() == -1.0 && product.getValorBase()== -1.0){
+        if(jId.getText().length()<=0 && jNombre.getText().length()<=0 && product.getTemperatura() == -500.0 && product.getValorBase()== -500.0){
             mostrarTablaBD("");
         }
         else{
@@ -331,36 +329,47 @@ public class Configuracion extends javax.swing.JFrame {
         // TODO add your handling code here:
         String sqlSent;
         Producto product = new Producto();
-        product.setId(jId.getText());
-        product.setNombre(jNombre.getText());
-        product.setTemperatura(Double.parseDouble(jTemperatura.getText()));
-        product.setValorBase(Double.parseDouble(jValorBase.getText()));
-        ConexionDB con = new ConexionDB();
-        
-        sqlSent = "INSERT INTO tablaProductos(Id,Nombre,Temperatura,ValorBase, Costo) " 
-                + " VALUES(" + Integer.parseInt(product.getId()) 
-                + ",'" + product.getNombre() + "'," 
-                + product.getTemperatura() + "," 
-                + product.getValorBase() + "," 
-                + product.calcularCosto(product.getTemperatura()) + ");";
-        
-        if (con.setAutoCommitBD(false)){
-            if(con.insertarBD(sqlSent)){
-                con.commitBD();
-                mostrarTablaBD("");
-                con.cerrarConexion();
-                vaciarTextFieldsAgregar();
+        try{
+            product.setId(jId.getText());
+            product.setTemperatura(Double.parseDouble(jTemperatura.getText()));
+            product.setValorBase(Double.parseDouble(jValorBase.getText()));
+            if(jNombre.getText().length()>0){
+                product.setNombre(jNombre.getText());
             }
             else{
-                con.rollbackBD();
-                con.cerrarConexion();
-                System.out.println("Error: No fue posible Guardar los datos");
+                product.setNombre("----");
+            }
+            
+            ConexionDB con = new ConexionDB();
+
+            sqlSent = "INSERT INTO tablaProductos(Id,Nombre,Temperatura,ValorBase, Costo) " 
+                    + " VALUES(" + Integer.parseInt(product.getId()) 
+                    + ",'" + product.getNombre() + "'," 
+                    + product.getTemperatura() + "," 
+                    + product.getValorBase() + "," 
+                    + product.calcularCosto(product.getTemperatura()) + ");";
+
+            if (con.setAutoCommitBD(false)){
+                if(con.insertarBD(sqlSent)){
+                    con.commitBD();
+                    mostrarTablaBD("");
+                    con.cerrarConexion();
+                    vaciarTextFieldsAgregar();
                 }
+                else{
+                    con.rollbackBD();
+                    con.cerrarConexion();
+                    System.out.println("Error: No fue posible Guardar los datos");
+                    }
+            }
+            else{
+                con.cerrarConexion();       
+                System.out.println("Error");
+            }
         }
-        else{
-            con.cerrarConexion();       
-            System.out.println("Error");
-        } 
+        catch(NumberFormatException ex){
+            System.out.println("Error: Todos los campos numericos deben ser completados");
+        }
     }//GEN-LAST:event_jGuardarActionPerformed
 
     private void jNombreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jNombreActionPerformed
@@ -375,32 +384,40 @@ public class Configuracion extends javax.swing.JFrame {
         // TODO add your handling code here:
         String sqlSent;
         Producto product = new Producto();
-        product.setId(jId.getText());
-        product.setNombre(jNombre.getText());
-        product.setTemperatura(Double.parseDouble(jTemperatura.getText()));
-        product.setValorBase(Double.parseDouble(jValorBase.getText()));
-        ConexionDB con = new ConexionDB();
-        sqlSent = "UPDATE tablaProductos SET Nombre='" + product.getNombre() + "',Temperatura=" + product.getTemperatura() 
-                + ",ValorBase=" + product.getValorBase() + ",Costo=" + product.calcularCosto(product.getTemperatura()) + " " 
-                + "WHERE id=" + product.getId() + ";";
-        
-        if (con.setAutoCommitBD(false)){
-            if(con.actualizarBD(sqlSent)){
-                con.commitBD();
-                mostrarTablaBD(" ");
-                con.cerrarConexion();
-                vaciarTextFieldsAgregar();
+        try{
+            product.setId(jId.getText());
+            product.setNombre(jNombre.getText());
+            product.setTemperatura(Double.parseDouble(jTemperatura.getText()));
+            product.setValorBase(Double.parseDouble(jValorBase.getText()));
+            ConexionDB con = new ConexionDB();
+            sqlSent = "UPDATE tablaProductos SET Nombre='" + product.getNombre() 
+                    + "',Temperatura='" + product.getTemperatura() 
+                    + "',ValorBase='" + product.getValorBase() 
+                    + "',Costo='" + product.calcularCosto(product.getTemperatura()) 
+                    + "' WHERE id='" + product.getId() + "';";
+
+            if (con.setAutoCommitBD(false)){
+                if(con.actualizarBD(sqlSent)){
+                    con.commitBD();
+                    mostrarTablaBD(" ");
+                    con.cerrarConexion();
+                    vaciarTextFieldsAgregar();
+                }
+                else{
+                    con.rollbackBD();
+                    con.cerrarConexion();
+                    System.out.println("Error: No fue posible actualizar los datos");
+                    }
             }
             else{
-                con.rollbackBD();
-                con.cerrarConexion();
-                System.out.println("Error: No fue posible actualizar los datos");
-                }
+                con.cerrarConexion();       
+                System.out.println("Error");
+            }
         }
-        else{
-            con.cerrarConexion();       
-            System.out.println("Error");
+        catch(NumberFormatException ex){
+            System.out.println("Error: Todos los campos numericos deben ser completados");
         }
+        
     }//GEN-LAST:event_jActualizarActionPerformed
 
     private void jEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jEliminarActionPerformed
@@ -408,9 +425,10 @@ public class Configuracion extends javax.swing.JFrame {
         String sqlSent;
         ConexionDB con = new ConexionDB();
         Producto product = new Producto();
+ 
         product.setId(jId.getText());
-        sqlSent = "DELETE FROM tablaProductos WHERE id=" + product.getId() +";";
-        
+        sqlSent = "DELETE FROM tablaProductos WHERE id='" + product.getId() +"';";
+
         if (con.setAutoCommitBD(false)){
             if(con.borrarBD(sqlSent)){
                 con.commitBD();
@@ -428,7 +446,34 @@ public class Configuracion extends javax.swing.JFrame {
             con.cerrarConexion();       
             System.out.println("Error");
         }
+
         
+        
+        /*try{
+            product.setId(jId.getText());
+            sqlSent = "DELETE FROM tablaProductos WHERE id=" + product.getId() +";";
+        
+            if (con.setAutoCommitBD(false)){
+                if(con.borrarBD(sqlSent)){
+                    con.commitBD();
+                    mostrarTablaBD(" ");
+                    con.cerrarConexion();
+                    vaciarTextFieldsAgregar();
+                }
+                else{
+                    con.rollbackBD();
+                    con.cerrarConexion();
+                    System.out.println("Error: No fue posible Eliminar los datos");
+                    }
+            }
+            else{
+                con.cerrarConexion();       
+                System.out.println("Error");
+            }
+        }
+        catch(RuntimeException ex){
+            System.out.println("Error: Campo de ID incorrecto");
+        }*/
     }//GEN-LAST:event_jEliminarActionPerformed
 
     private void jConsultarMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jConsultarMouseEntered

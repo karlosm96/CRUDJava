@@ -87,15 +87,15 @@ public class Producto {
         return this.getClass().getName() + "{" + "nombre=" + nombre + ", id=" + id + ", temperatura=" + temperatura + ", valorBase=" + valorBase + '}';
     }
     
-    public double ParseDouble(String strInput) {
+    public double ParseDoubleEspecial(String strInput) {
         if (strInput != null && strInput.length() > 0) {
             try {
                return Double.parseDouble(strInput);
             } catch(NumberFormatException e) {
-               return -1;   // or some value to mark this field is wrong. or make a function validates field first ...
+               return -500;   // or some value to mark this field is wrong. or make a function validates field first ...
             }
         }
-        else return -1;
+        else return -500;
      }
     
     public List<Producto> listaDeProductos(String s){

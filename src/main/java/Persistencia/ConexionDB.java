@@ -131,8 +131,4 @@ public class ConexionDB {
             return false;
         }
     }
-    
-//    public static void main(String[] args) {
-//        ConexionBD c= new ConexionBD();        
-//    }
 }
